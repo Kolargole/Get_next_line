@@ -6,7 +6,7 @@
 /*   By: vimercie <vimercie@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/24 11:55:07 by vimercie          #+#    #+#             */
-/*   Updated: 2021/12/02 17:16:38 by vimercie         ###   ########lyon.fr   */
+/*   Updated: 2022/01/28 03:36:24 by vimercie         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,34 +17,47 @@ char	*get_next_line(int fd)
 {
 	static char	str[BUFFER_SIZE];
 	static char	*tmp;
+	static int	gnl_status;
 	char		*res;
 	size_t		i;
-	int			gnl_status;
 
+	gnl_status = read(fd, str, BUFFER_SIZE);
 	res = "";
+	i = 0;
 	if (tmp)
 	{
-		res = tmp;
+		res = malloc(sizeof(char) * ft_strlen(tmp));
+		ft_memcpy(res, tmp, ft_strlen(tmp));
 		free(tmp);
 	}
-	while (res[ft_strlen(res) - 1] != '\n')
+	while (gnl_status > 0)
 	{
-		i = 0;
+		if (ft_strchr(str, '\n') == NULL)
+			res = ft_strjoin(res, str);
+		else
+		{
+			while (str[i] != '\n')
+				i++;
+			tmp = ft_substr(str, 0, i + 1);
+			res = ft_strjoin(res, tmp);
+			free(tmp);
+			tmp = ft_substr(str, i + 1, ft_strlen(str) - (i + 1));
+			return (res);
+		}
 		gnl_status = read(fd, str, BUFFER_SIZE);
-		// printf("gnl_status = %d\n", gnl_status);
-		while (str[i] && str[i] != '\n')
-			i++;
-		// printf("i = %zu\n", i);
-		tmp = ft_substr(str, 0, i + 1);
-		res = ft_strjoin(res, tmp);
-		free(tmp);
-		if (res[ft_strlen(res) - 1] == '\n')
-			tmp = ft_substr(str, i + 1, BUFFER_SIZE - i);
+		if (gnl_status == 0)
+			free(tmp);
 	}
-	if (gnl_status > 0)
-		return (res);
-	free(res);
-	return (NULL);
+}
+
+size_t	ft_strlen(const char *s)
+{
+	int	i;
+
+	i = 0;
+	while (s[i])
+		i++;
+	return (i);
 }
 
 int	main(void)

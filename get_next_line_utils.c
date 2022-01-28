@@ -6,21 +6,11 @@
 /*   By: vimercie <vimercie@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/24 12:10:52 by vimercie          #+#    #+#             */
-/*   Updated: 2021/12/02 17:07:53 by vimercie         ###   ########lyon.fr   */
+/*   Updated: 2022/01/28 03:00:45 by vimercie         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-size_t	ft_strlen(const char *s)
-{
-	int	i;
-
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
 
 void	*ft_calloc(size_t count, size_t size)
 {
@@ -39,6 +29,24 @@ void	*ft_calloc(size_t count, size_t size)
 	return (ptr);
 }
 
+char	*ft_strchr(const char *s, int c)
+{
+	unsigned char	tmp;
+	size_t			i;
+
+	tmp = c;
+	i = 0;
+	if (c == 0)
+		return ((char *)s + ft_strlen(s));
+	while (s[i])
+	{
+		if (s[i] == tmp)
+			return ((char *)s + i);
+		i++;
+	}
+	return (NULL);
+}
+
 char	*ft_strjoin(char const *s1, char const *s2)
 {
 	size_t	i;
@@ -49,7 +57,7 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	j = 0;
 	if (!s1 || !s2)
 		return (NULL);
-	str = malloc(sizeof(char) * (ft_strlen(s1) + ft_strlen(s2)) + 1);
+	str = ft_calloc((ft_strlen(s1) + ft_strlen(s2)) + 1, sizeof(char));
 	if (!str)
 		return (NULL);
 	while (s1[i])
@@ -63,7 +71,6 @@ char	*ft_strjoin(char const *s1, char const *s2)
 		i++;
 		j++;
 	}
-	str[i] = 0;
 	return (str);
 }
 
@@ -90,4 +97,21 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 		i++;
 	}
 	return (str);
+}
+
+void	*ft_memcpy(void *dest, const void *src, size_t n)
+{
+	void	*tmp;
+
+	tmp = dest;
+	if (src == NULL && dest == NULL)
+		return (dest);
+	while (n)
+	{
+		*((char *)dest) = *((char *)src);
+		dest++;
+		src++;
+		n--;
+	}
+	return (tmp);
 }
