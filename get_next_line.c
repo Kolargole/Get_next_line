@@ -6,58 +6,82 @@
 /*   By: vimercie <vimercie@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/24 11:55:07 by vimercie          #+#    #+#             */
-/*   Updated: 2022/01/28 03:36:24 by vimercie         ###   ########lyon.fr   */
+/*   Updated: 2022/02/14 17:48:15 by vimercie         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 #include <stdio.h>
 
-char	*get_next_line(int fd)
+static void	*save_buf(char	buf[BUFFER_SIZE + 1])
 {
-	static char	str[BUFFER_SIZE];
-	static char	*tmp;
-	static int	gnl_status;
-	char		*res;
-	size_t		i;
+	char	*tmp;
+	int		i;
+	int		j;
 
-	gnl_status = read(fd, str, BUFFER_SIZE);
-	res = "";
-	i = 0;
-	if (tmp)
-	{
-		res = malloc(sizeof(char) * ft_strlen(tmp));
-		ft_memcpy(res, tmp, ft_strlen(tmp));
-		free(tmp);
-	}
-	while (gnl_status > 0)
-	{
-		if (ft_strchr(str, '\n') == NULL)
-			res = ft_strjoin(res, str);
-		else
-		{
-			while (str[i] != '\n')
-				i++;
-			tmp = ft_substr(str, 0, i + 1);
-			res = ft_strjoin(res, tmp);
-			free(tmp);
-			tmp = ft_substr(str, i + 1, ft_strlen(str) - (i + 1));
-			return (res);
-		}
-		gnl_status = read(fd, str, BUFFER_SIZE);
-		if (gnl_status == 0)
-			free(tmp);
-	}
+	i = ft_gnllen(buf, 1);
+	j = 0;
+	tmp = ft_strdup(buf);
+	ft_memset(buf, 0, BUFFER_SIZE + 1);
+	while (tmp[i])
+		buf[j++] = tmp[i++];
+	free(tmp);
 }
 
-size_t	ft_strlen(const char *s)
+static char	*ft_gnljoin(char const *s1, char const *s2)
 {
-	int	i;
+	size_t	i;
+	size_t	j;
+	size_t	len_1;
+	size_t	len_2;
+	char	*str;
 
 	i = 0;
-	while (s[i])
+	j = 0;
+	len_1 = ft_gnllen(s1, 0);
+	len_2 = ft_gnllen(s2, 1);
+	if (len_2 == -1)
+		len_2 = ft_gnllen(s2, 0);
+	if (len_1 + len_2 <= 0)
+		return (ft_strdup(s2));
+	str = ft_calloc((len_1 + len_2) + 1, sizeof(char));
+	if (s1 == NULL)
+		return (ft_strdup(s2));
+	while (s1[i])
+		str[i] = s1[i++];
+	while (s2[j] && s2[j] != '\n')
+	{
+		str[i] = s2[j];
 		i++;
-	return (i);
+		j++;
+	}
+	if (s1 && s1[0] != '\0')
+		free((char *)s1);
+	return (str);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	buffer[BUFFER_SIZE + 1] = {0};
+	char		*line;
+	int			read_return;
+
+	line = NULL;
+	read_return = 1;
+	if (buffer[0] == '\0')
+		read_return = read(fd, buffer, BUFFER_SIZE);
+	while (read_return)
+	{
+		line = ft_gnljoin(line, buffer);
+		dprintf(1, "----------buffer = %s\n", buffer);
+		if (ft_gnllen(buffer, 1) >= 0)
+		{
+			save_buf(buffer);
+			return (line);
+		}
+		read_return = read(fd, buffer, BUFFER_SIZE);
+	}
+	return (line);
 }
 
 int	main(void)
@@ -67,42 +91,24 @@ int	main(void)
 
 	fd = open("test.txt", O_RDONLY);
 	str = get_next_line(fd);
-	printf("phrase 1 = \nres : %s\n", str);
+	printf("phrase 1 = %s\n", str);
 	free(str);
 	str = get_next_line(fd);
-	printf("phrase 2 = \nres : %s\n", str);
+	printf("phrase 2 = %s\n", str);
 	free(str);
-	str = get_next_line(fd);
-	printf("phrase 3 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 4 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 5 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 6 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 7 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 8 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 9 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 10 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 11 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 12 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 13 = \nres : %s\n", str);
-	free(str);
+	// str = get_next_line(fd);
+	// printf("phrase 3 = %s\n", str);
+	// free(str);
+	// str = get_next_line(fd);
+	// printf("phrase 4 = \nres : %s\n", str);
+	// free(str);
+	// str = get_next_line(fd);
+	// printf("phrase 5 = \nres : %s\n", str);
+	// free(str);
+	// str = get_next_line(fd);
+	// printf("phrase 6 = \nres : %s\n", str);
+	// free(str);
+	// str = get_next_line(fd);
+	// printf("phrase 7 = \nres : %s\n", str);
+	// free(str);
 }
