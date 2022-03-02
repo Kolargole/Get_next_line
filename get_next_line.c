@@ -5,104 +5,60 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: vimercie <vimercie@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/24 11:55:07 by vimercie          #+#    #+#             */
-/*   Updated: 2022/01/28 03:36:24 by vimercie         ###   ########lyon.fr   */
+/*   Created: 2022/02/22 15:40:44 by vimercie          #+#    #+#             */
+/*   Updated: 2022/03/02 15:10:16 by vimercie         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h>
+
+int	line_join(char *buf, char **line, int *index)
+{
+	char	*tmp;
+
+	if (!newline_chr(buf, *index) && buf[*index] != '\n')
+	{
+		tmp = ft_substr(buf, *index, ft_strlen(buf) - *index);
+		*line = ft_strjoin(*line, tmp);
+		*index = 0;
+	}
+	else
+	{
+		tmp = ft_substr(buf, *index, (newline_chr(buf, *index) + 1) - *index);
+		*line = ft_strjoin(*line, tmp);
+		if (buf[newline_chr(buf, *index) + 1])
+			*index = newline_chr(buf, *index) + 1;
+		else
+			*index = 0;
+		return (1);
+	}
+	return (0);
+}
 
 char	*get_next_line(int fd)
 {
-	static char	str[BUFFER_SIZE];
-	static char	*tmp;
-	static int	gnl_status;
-	char		*res;
-	size_t		i;
+	static char	buf[BUFFER_SIZE + 1];
+	static int	index;
+	char		*line;
+	int			is_read;
 
-	gnl_status = read(fd, str, BUFFER_SIZE);
-	res = "";
-	i = 0;
-	if (tmp)
+	line = NULL;
+	is_read = 1;
+	if (fd < 0 || BUFFER_SIZE < 1)
+		return (NULL);
+	while (is_read > 0)
 	{
-		res = malloc(sizeof(char) * ft_strlen(tmp));
-		ft_memcpy(res, tmp, ft_strlen(tmp));
-		free(tmp);
-	}
-	while (gnl_status > 0)
-	{
-		if (ft_strchr(str, '\n') == NULL)
-			res = ft_strjoin(res, str);
-		else
+		if (index == 0)
 		{
-			while (str[i] != '\n')
-				i++;
-			tmp = ft_substr(str, 0, i + 1);
-			res = ft_strjoin(res, tmp);
-			free(tmp);
-			tmp = ft_substr(str, i + 1, ft_strlen(str) - (i + 1));
-			return (res);
+			is_read = read(fd, buf, BUFFER_SIZE);
+			if (is_read == -1)
+				return (NULL);
+			buf[is_read] = '\0';
 		}
-		gnl_status = read(fd, str, BUFFER_SIZE);
-		if (gnl_status == 0)
-			free(tmp);
+		if (is_read == 0)
+			return (line);
+		if (line_join(buf, &line, &index) == 1)
+			return (line);
 	}
-}
-
-size_t	ft_strlen(const char *s)
-{
-	int	i;
-
-	i = 0;
-	while (s[i])
-		i++;
-	return (i);
-}
-
-int	main(void)
-{
-	int		fd;
-	char	*str;
-
-	fd = open("test.txt", O_RDONLY);
-	str = get_next_line(fd);
-	printf("phrase 1 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 2 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 3 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 4 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 5 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 6 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 7 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 8 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 9 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 10 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 11 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 12 = \nres : %s\n", str);
-	free(str);
-	str = get_next_line(fd);
-	printf("phrase 13 = \nres : %s\n", str);
-	free(str);
+	return (line);
 }
